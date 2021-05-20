@@ -8,14 +8,18 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="light_gray">#d3d3d3</color>
-    <color name="twitterBlue">#1DA1F2</color>
-    <color name="blue">#0000ff</color>
     <color name="darkGray">#777777</color>
-<!--    <color name="colorPrimary">#dddddd</color>-->
     <color name="colorPrimaryDark">#bbbbbb</color>
     <color name="colorAccent">#209ee6</color>
     <color name="transparent_gray">#99cccccc</color>
     <color name="shadow_color">#cadddddd</color>
     <color name="edittext_color">#F5F8FB</color>
+    <color name="blue">#0000ff</color>
+    <color name="twitterBlue">#1DA1F2</color>
+    <color name="twitterDarkGray">#657786</color>
+    <color name="twitterLightGray">#AAB8C2</color>
+    <color name="ExLightGray">#E1E8ED</color>
+    <color name="ExExLightGray">#F5F8FA</color>
+
 
 </resources>

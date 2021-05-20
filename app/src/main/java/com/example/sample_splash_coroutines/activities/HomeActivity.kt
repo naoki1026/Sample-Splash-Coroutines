@@ -1,11 +1,9 @@
-package com.example.sample_splash_coroutines
+package com.example.sample_splash_coroutines.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import com.example.sample_splash_coroutines.databinding.ActivityHomeBinding
-import com.example.sample_splash_coroutines.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -20,6 +18,9 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         auth = Firebase.auth
+
+
+
         binding.topMenu.setOnClickListener {
             kotlin.runCatching {
                 auth.signOut()

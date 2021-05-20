@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".HomeActivity" >
+    tools:context=".activities.HomeActivity" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="@dimen/standard_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,6 +21,7 @@
             android:layout_height="30dp"
             android:layout_marginStart="16dp"
             android:src="@drawable/ic_baseline_menu_24"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -30,21 +31,39 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/logo"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <SearchView
+            android:layout_width="285dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/searchview_background"
+            android:iconifiedByDefault="false"
+            android:queryBackground="@null"
+            android:queryHint="キーワード検索"
+            android:searchIcon="@null"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/top_menu"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <View
-        android:id="@+id/view"
+        android:id="@+id/top_line"
         android:layout_width="wrap_content"
         android:layout_height="1dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/ExLightGray"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_bar"/>
+        app:layout_constraintTop_toBottomOf="@+id/top_bar" />
 
     <TextView
         android:id="@+id/nametextview"
@@ -54,5 +73,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
+        app:layout_constraintTop_toBottomOf="@+id/top_line" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

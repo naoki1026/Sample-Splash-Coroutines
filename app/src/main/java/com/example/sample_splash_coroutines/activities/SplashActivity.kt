@@ -1,9 +1,8 @@
-package com.example.sample_splash_coroutines
+package com.example.sample_splash_coroutines.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import com.example.sample_splash_coroutines.databinding.ActivitySplashBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -15,7 +14,6 @@ import kotlinx.coroutines.launch
 
 
 class SplashActivity : AppCompatActivity() {
-
     private var _binding : ActivitySplashBinding? = null
     private val binding get() = _binding!!
     private lateinit var auth  : FirebaseAuth
