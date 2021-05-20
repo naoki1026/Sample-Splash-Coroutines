@@ -20,7 +20,6 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         auth = Firebase.auth
-
         binding.topMenu.setOnClickListener {
             kotlin.runCatching {
                 auth.signOut()

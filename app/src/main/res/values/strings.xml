@@ -2,9 +2,11 @@
     <string name="app_name">Twitter</string>
     <string name="twitter_login">Twitterにログイン</string>
     <string name="hint_password">パスワード</string>
+    <string name="hint_username">ユーザー名</string>
     <string name="hint_mailaddress">メールアドレス</string>
     <string name="loginbutton_text">ログイン</string>
     <string name="newaccount_text">アカウントの作成</string>
+    <string name="return_login">ログイン画面に戻る</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_login">LoginActivity</string>
