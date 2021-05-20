@@ -66,6 +66,7 @@ class SignUpActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT).show()
                     val intent = Intent(this@SignUpActivity, HomeActivity::class.java)
                     startActivity(intent)
+                    dialog.dismiss()
                 } else {
                     Toast.makeText(baseContext, "すでに登録済みのメールアドレスです",
                         Toast.LENGTH_SHORT).show()
@@ -73,7 +74,6 @@ class SignUpActivity : AppCompatActivity() {
                 }
             }
     }
-
 
     fun loadingAnimation(){
         var builder = android.app.AlertDialog.Builder(this)
