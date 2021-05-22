@@ -27,7 +27,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/twittericon"
+            android:id="@+id/twitterIcon"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/logo"
@@ -38,6 +38,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <SearchView
+            android:id="@+id/search_view"
             android:layout_width="285dp"
             android:layout_height="38dp"
             android:layout_marginStart="32dp"
@@ -48,7 +49,7 @@
             android:queryBackground="@null"
             android:queryHint="キーワード検索"
             android:searchIcon="@null"
-            android:visibility="visible"
+            android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/top_menu"
             app:layout_constraintTop_toTopOf="parent" />
@@ -65,8 +66,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_bar" />
 
+    <FrameLayout
+        android:id="@+id/frame_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topline"></FrameLayout>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton2"
+        android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="26dp"

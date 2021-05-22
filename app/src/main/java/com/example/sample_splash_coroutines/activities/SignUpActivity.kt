@@ -22,8 +22,9 @@ class SignUpActivity : AppCompatActivity() {
     private var _binding : ActivitySignUpBinding? = null
     private val binding get() = _binding!!
     private lateinit var auth: FirebaseAuth
-    private lateinit var dialog : android.app.AlertDialog
     private lateinit var db : FirebaseFirestore
+    private lateinit var dialog : android.app.AlertDialog
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,10 +44,11 @@ class SignUpActivity : AppCompatActivity() {
         binding.signupbutton.setOnClickListener {
             var email_validate = ValidateInput().emailValidate(emailET, this)
             var password_validate = ValidateInput().passwordValidate(passwordET, this)
+            var username_validate = ValidateInput().usernameValidater(usernameET, this)
 
-            CoroutineScope(Dispatchers.Main).launch {
+            CoroutineScope(Dispatchers.Default).launch {
                 loadingAnimation()
-                if (email_validate && password_validate){
+                if (email_validate && password_validate && username_validate){
                     createAccount(emailET.text.toString(), passwordET.text.toString(), usernameET.text.toString())
                 }
             }
@@ -81,6 +83,5 @@ class SignUpActivity : AppCompatActivity() {
         builder.setCancelable(false)
         dialog = builder.create()
         dialog.show()
-
     }
 }

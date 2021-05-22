@@ -28,20 +28,20 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        val currentUser = auth.currentUser
-        if (currentUser != null ){
-            CoroutineScope(Dispatchers.Main).launch {
-                delay(1000)
-                val intent = Intent(this@SplashActivity, HomeActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
+            val currentUser = auth.currentUser
+            if (currentUser != null ){
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(250)
+                    val intent = Intent(this@SplashActivity, HomeActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(intent)
+                }
+            } else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(250)
+                    val intent = Intent(this@SplashActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(intent)
+                }
             }
-        } else {
-            CoroutineScope(Dispatchers.Main).launch {
-                delay(1000)
-                val intent = Intent(this@SplashActivity, LoginActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
-            }
-        }
     }
 
     override fun onDestroy() {

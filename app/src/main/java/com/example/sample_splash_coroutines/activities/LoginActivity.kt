@@ -21,8 +21,6 @@ class LoginActivity : AppCompatActivity() {
     private var _binding : ActivityLoginBinding? = null
     private val binding get() = _binding!!
     private lateinit var auth  : FirebaseAuth
-
-    // AlertDialog型の変数を定義
     private lateinit var dialog : AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,8 +29,8 @@ class LoginActivity : AppCompatActivity() {
         _binding = ActivityLoginBinding.inflate(layoutInflater)
         var emailET = binding.emailET
         var passwordET = binding.passwordET
-        auth = Firebase.auth
 
+        auth = Firebase.auth
         binding.loginbutton.setOnClickListener {
             var email_validate = ValidateInput().emailValidate(emailET, this)
             var password_validate = ValidateInput().passwordValidate(passwordET, this)
@@ -79,7 +77,6 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(baseContext, "入力内容が不正です",
                         Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
-
                 }
             }
     }
@@ -93,5 +90,4 @@ class LoginActivity : AppCompatActivity() {
         dialog = builder.create()
         dialog.show()
     }
-
 }

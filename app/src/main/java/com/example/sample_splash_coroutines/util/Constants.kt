@@ -6,3 +6,4 @@ val DATA_USER_USERNAME = "username"
 val DATA_USER_IMAGE_URL= "imageUrl"
 val DATA_USER_HASHTAGS = "followHashtags"
 val DATA_USER_FOLLOW = "followUsers"
+val READ_REQUEST_CODE : Int = 42
