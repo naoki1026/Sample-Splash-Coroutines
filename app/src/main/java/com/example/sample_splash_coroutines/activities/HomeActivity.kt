@@ -1,5 +1,6 @@
 package com.example.sample_splash_coroutines.activities
 
+import android.app.AlertDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -22,12 +23,30 @@ class HomeActivity : AppCompatActivity() {
     private val homeFragment = HomeFragment()
     private val searchFragment = SearchFragment()
     private val myActivityFragment = MyActivityFragment()
+    private lateinit var dialog : AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         auth = Firebase.auth
 
+        updateBottomNavigationView()
+
+        binding.topMenu.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+        setContentView(binding.root)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(auth.currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
+    }
+
+    private fun updateBottomNavigationView(){
         supportFragmentManager.beginTransaction()
             .replace(R.id.frame_layout, homeFragment)
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit()
@@ -58,25 +77,20 @@ class HomeActivity : AppCompatActivity() {
             }
             true
         }
-
-        binding.topMenu.setOnClickListener {
-            val intent = Intent(this@HomeActivity, ProfileActivity::class.java)
-            startActivity(intent)
-        }
-        setContentView(binding.root)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if(auth.currentUser == null) {
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
     }
+
+//    private fun loadingAnimation(){
+//        var builder = android.app.AlertDialog.Builder(this)
+//        builder.setView(R.layout.loading)
+//        builder.setCancelable(false)
+//
+//        // 定義した変数に対して代入する
+//        dialog = builder.create()
+//        dialog.show()
+//    }
 }

@@ -46,7 +46,7 @@ class SignUpActivity : AppCompatActivity() {
             var password_validate = ValidateInput().passwordValidate(passwordET, this)
             var username_validate = ValidateInput().usernameValidater(usernameET, this)
 
-            CoroutineScope(Dispatchers.Default).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 loadingAnimation()
                 if (email_validate && password_validate && username_validate){
                     createAccount(emailET.text.toString(), passwordET.text.toString(), usernameET.text.toString())

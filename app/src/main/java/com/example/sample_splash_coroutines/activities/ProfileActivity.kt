@@ -2,10 +2,15 @@ package com.example.sample_splash_coroutines.activities
 
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.sample_splash_coroutines.R
 import com.example.sample_splash_coroutines.databinding.ActivityProfileBinding
 import com.example.sample_splash_coroutines.util.*
@@ -13,12 +18,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.firestoreSettings
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -26,9 +34,12 @@ class ProfileActivity : AppCompatActivity() {
     private val binding get() = _binding!!
     private lateinit var auth  : FirebaseAuth
     private lateinit var db : FirebaseFirestore
-//    private lateinit var dialog : AlertDialog
+    private lateinit var dialog : android.app.AlertDialog
     private lateinit var storage : FirebaseStorage
-    private var imageUrl : String? = null
+    private lateinit var imageUrl : String
+    private val scope = CoroutineScope(Dispatchers.Default)
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +48,11 @@ class ProfileActivity : AppCompatActivity() {
         db  = Firebase.firestore
         storage = Firebase.storage
 
+
         var emailET = binding.emailET
         var usernameET = binding.usernameET
+        binding.circleImageView.setImageDrawable(null)
+        binding.circleImageView.destroyDrawingCache()
 
         CoroutineScope(Dispatchers.Main).launch {
             populateInfo()
@@ -46,7 +60,6 @@ class ProfileActivity : AppCompatActivity() {
 
         binding.circleImageView.setOnClickListener{
             selectPhoto()
-
         }
 
         binding.signoutButton.setOnClickListener {
@@ -64,13 +77,23 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
         }
-
         setContentView(binding.root)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
+    override fun onResume() {
+        super.onResume()
+        auth = Firebase.auth
+        db  = Firebase.firestore
+        storage = Firebase.storage
+        println("読み込み : resume")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        auth = Firebase.auth
+        db  = Firebase.firestore
+        storage = Firebase.storage
+        println("読み込み : onStart")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -80,12 +103,10 @@ class ProfileActivity : AppCompatActivity() {
         }
         when (requestCode) {
             READ_REQUEST_CODE -> {
+                loadingAnimation()
                 try {
                     data?.data?.also { uri ->
-                        val inputStream = contentResolver?.openInputStream(uri)
-                        val image = BitmapFactory.decodeStream(inputStream)
-                        val imageView = findViewById<ImageView>(R.id.circleImageView)
-                        imageView.setImageBitmap(image)
+                        storeImage(uri)
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this, "エラーが発生しました", Toast.LENGTH_LONG).show()
@@ -100,14 +121,43 @@ class ProfileActivity : AppCompatActivity() {
                 val user : User? = documentSnapShop.toObject(User::class.java)
                 binding.usernameET.setText(user?.username)
                 binding.emailET.setText(user?.email)
-                imageUrl?.let {
 
-                }
+                val storageRef = FirebaseStorage.getInstance().reference
+                val imageRef = storageRef.child("ProfileImage/${auth.currentUser!!.uid}")
+
+                Glide.with(this)
+                    .load(imageRef)
+//                    .skipMemoryCache(true)
+//                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(findViewById<ImageView>(R.id.circleImageView))
             }
             .addOnFailureListener {  e ->
                 e.printStackTrace()
                 finish()
             }
+    }
+
+    private fun storeImage(imageUri : Uri?){
+            imageUri?.let { imageUri ->
+                val filePath : StorageReference = storage.reference.child(DATA_IMAGES).child(auth.currentUser!!.uid)
+                    filePath.putFile(imageUri).addOnCompleteListener {
+                        println("アップ成功")
+                        filePath.downloadUrl
+                            .addOnCompleteListener { uri ->
+                                val url = uri.toString()
+                                db.collection(DATA_USERS).document(auth.currentUser!!.uid).update(
+                                    DATA_USER_IMAGE_URL, url)
+                                imageUrl = imageUri.toString()
+
+                                scope.launch {
+                                    myTask()
+                                }
+
+                            }
+                        dialog.dismiss()
+                    }
+                }
+
     }
 
     private fun onApply(){
@@ -120,7 +170,9 @@ class ProfileActivity : AppCompatActivity() {
         db.collection(DATA_USERS).document(auth.currentUser!!.uid).update(map)
             .addOnSuccessListener {
                 auth.currentUser!!.updateEmail(email)
-                Toast.makeText(this, "更新されました", Toast.LENGTH_SHORT).show()
+                    .addOnCompleteListener {
+                        Toast.makeText(this, "更新されました", Toast.LENGTH_SHORT).show()
+                    }
                 finish()
             }
             .addOnFailureListener {  e ->
@@ -138,15 +190,46 @@ class ProfileActivity : AppCompatActivity() {
         Toast.makeText(this, "Tapped", Toast.LENGTH_SHORT).show()
     }
 
-//    private fun loadingAnimation() {
-//        var builder = android.app.AlertDialog.Builder(this)
-//        builder.setView(R.layout.loading)
-//        builder.setCancelable(false)
-//
-//        // 定義した変数に対して代入する
-//        dialog = builder.create()
-//        dialog.show()
-//    }
+    fun loadingAnimation(){
+        var builder = android.app.AlertDialog.Builder(this@ProfileActivity)
+        builder.setView(R.layout.loading)
+        builder.setCancelable(false)
+        dialog = builder.create()
+        dialog.show()
+    }
 
+    private suspend fun myTask() {
+        try {
+            binding.circleImageView.setImageURI(null)
+            binding.circleImageView.destroyDrawingCache()
+
+            // doInBackgroundメソッドと同等の処理
+            Glide.get(this).clearDiskCache()
+
+            Thread.sleep(800)
+            // onPreExecuteと同等の処理
+
+            // onPostExecuteメソッドと同等の処理
+            withContext(Dispatchers.Main) {
+                Glide.get(this@ProfileActivity).clearMemory()
+                Glide.with(this@ProfileActivity)
+                    .load(imageUrl)
+                    .into(binding.circleImageView)
+                Toast.makeText(this@ProfileActivity, "画像を変更しました", Toast.LENGTH_SHORT).show()
+
+            }
+        } catch (e: Exception) {
+            // onCancelledメソッドと同等の処理
+            Log.e(localClassName, "ここにキャンセル時の処理を記述", e)
+        }
+    }
+
+
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 
 }

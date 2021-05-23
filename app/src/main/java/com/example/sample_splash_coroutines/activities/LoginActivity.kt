@@ -62,7 +62,6 @@ class LoginActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val intent = Intent(this@LoginActivity, HomeActivity::class.java)
                     val user = auth.currentUser
 
                     user?.let { user ->
@@ -70,7 +69,7 @@ class LoginActivity : AppCompatActivity() {
                         intent.putExtra("uid", user.uid)
                     }
 
-                    startActivity(intent)
+                    startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
                     dialog.dismiss()
 
                 } else {
