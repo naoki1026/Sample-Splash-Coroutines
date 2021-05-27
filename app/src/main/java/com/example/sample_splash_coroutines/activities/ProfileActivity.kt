@@ -1,16 +1,12 @@
 package com.example.sample_splash_coroutines.activities
 
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.sample_splash_coroutines.R
 import com.example.sample_splash_coroutines.databinding.ActivityProfileBinding
 import com.example.sample_splash_coroutines.util.*
@@ -18,7 +14,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.firestoreSettings
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -26,7 +21,6 @@ import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -36,10 +30,9 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var db : FirebaseFirestore
     private lateinit var dialog : android.app.AlertDialog
     private lateinit var storage : FirebaseStorage
-    private lateinit var imageUrl : String
-    private val scope = CoroutineScope(Dispatchers.Default)
-
-
+    private  var imageUrl : String = ""
+    private  var username: String = ""
+    private  var email : String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,14 +41,10 @@ class ProfileActivity : AppCompatActivity() {
         db  = Firebase.firestore
         storage = Firebase.storage
 
-
-        var emailET = binding.emailET
-        var usernameET = binding.usernameET
-        binding.circleImageView.setImageDrawable(null)
-        binding.circleImageView.destroyDrawingCache()
-
-        CoroutineScope(Dispatchers.Main).launch {
-            populateInfo()
+        username = intent.getStringExtra(PARAM_USER_NAME)!!
+        email = intent.getStringExtra(PARAM_USER_EMAIL)!!
+        intent.getStringExtra(PARAM_USER_IMAGE_URL)?.let {getImageUrl ->
+            imageUrl = getImageUrl
         }
 
         binding.circleImageView.setOnClickListener{
@@ -68,11 +57,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         binding.applyButton.setOnClickListener {
-            var email_validate = ValidateInput().emailValidate(emailET, this)
-            var username_validate = ValidateInput().usernameValidater(usernameET, this)
+            var emailValidate = ValidateInput().emailValidate(binding.emailET, this)
+            var usernameValidate = ValidateInput().usernameValidater(binding.usernameET, this)
 
             CoroutineScope(Dispatchers.Main).launch {
-                if ( username_validate && email_validate ){
+                if ( usernameValidate && emailValidate ){
                     onApply()
                 }
             }
@@ -82,18 +71,9 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        auth = Firebase.auth
-        db  = Firebase.firestore
-        storage = Firebase.storage
-        println("読み込み : resume")
-    }
-
-    override fun onStart() {
-        super.onStart()
-        auth = Firebase.auth
-        db  = Firebase.firestore
-        storage = Firebase.storage
-        println("読み込み : onStart")
+        CoroutineScope(Dispatchers.Main).launch {
+            populateInfo()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -119,17 +99,19 @@ class ProfileActivity : AppCompatActivity() {
         db.collection(DATA_USERS).document("${auth.currentUser!!.uid}").get()
             .addOnSuccessListener{ documentSnapShop ->
                 val user : User? = documentSnapShop.toObject(User::class.java)
-                binding.usernameET.setText(user?.username)
-                binding.emailET.setText(user?.email)
 
-                val storageRef = FirebaseStorage.getInstance().reference
-                val imageRef = storageRef.child("ProfileImage/${auth.currentUser!!.uid}")
+                binding.usernameET.setText(username)
+                binding.emailET.setText(email)
 
-                Glide.with(this)
-                    .load(imageRef)
-//                    .skipMemoryCache(true)
-//                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(findViewById<ImageView>(R.id.circleImageView))
+                if (imageUrl.isNullOrBlank()){
+                    Glide.with(this)
+                        .load(user!!.imageUrl)
+                        .into(findViewById<ImageView>(R.id.circleImageView))
+                } else if (!user?.imageUrl.isNullOrEmpty()){
+                    Glide.with(this)
+                        .load(user!!.imageUrl)
+                        .into(findViewById<ImageView>(R.id.circleImageView))
+                }
             }
             .addOnFailureListener {  e ->
                 e.printStackTrace()
@@ -140,24 +122,22 @@ class ProfileActivity : AppCompatActivity() {
     private fun storeImage(imageUri : Uri?){
             imageUri?.let { imageUri ->
                 val filePath : StorageReference = storage.reference.child(DATA_IMAGES).child(auth.currentUser!!.uid)
+
                     filePath.putFile(imageUri).addOnCompleteListener {
-                        println("アップ成功")
                         filePath.downloadUrl
                             .addOnCompleteListener { uri ->
-                                val url = uri.toString()
+                                val url = uri.result.toString()
                                 db.collection(DATA_USERS).document(auth.currentUser!!.uid).update(
                                     DATA_USER_IMAGE_URL, url)
-                                imageUrl = imageUri.toString()
-
-                                scope.launch {
-                                    myTask()
-                                }
-
+                                imageUrl = url
+                                Glide.with(this@ProfileActivity)
+                                    .load(imageUrl)
+                                    .into(binding.circleImageView)
+                                Toast.makeText(this@ProfileActivity, "画像を変更しました", Toast.LENGTH_SHORT).show()
                             }
                         dialog.dismiss()
                     }
                 }
-
     }
 
     private fun onApply(){
@@ -190,7 +170,7 @@ class ProfileActivity : AppCompatActivity() {
         Toast.makeText(this, "Tapped", Toast.LENGTH_SHORT).show()
     }
 
-    fun loadingAnimation(){
+    private fun loadingAnimation(){
         var builder = android.app.AlertDialog.Builder(this@ProfileActivity)
         builder.setView(R.layout.loading)
         builder.setCancelable(false)
@@ -198,38 +178,39 @@ class ProfileActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private suspend fun myTask() {
-        try {
-            binding.circleImageView.setImageURI(null)
-            binding.circleImageView.destroyDrawingCache()
-
-            // doInBackgroundメソッドと同等の処理
-            Glide.get(this).clearDiskCache()
-
-            Thread.sleep(800)
-            // onPreExecuteと同等の処理
-
-            // onPostExecuteメソッドと同等の処理
-            withContext(Dispatchers.Main) {
-                Glide.get(this@ProfileActivity).clearMemory()
-                Glide.with(this@ProfileActivity)
-                    .load(imageUrl)
-                    .into(binding.circleImageView)
-                Toast.makeText(this@ProfileActivity, "画像を変更しました", Toast.LENGTH_SHORT).show()
-
-            }
-        } catch (e: Exception) {
-            // onCancelledメソッドと同等の処理
-            Log.e(localClassName, "ここにキャンセル時の処理を記述", e)
-        }
-    }
-
-
-
+//    private suspend fun clearCache() {
+//        try {
+//            // doInBackgroundメソッドと同等の処理
+//            Glide.get(this).clearDiskCache()
+//            println("clear disk cache")
+//
+//            Thread.sleep(800)
+//            // onPreExecuteと同等の処理
+//
+//            // onPostExecuteメソッドと同等の処理
+//            withContext(Dispatchers.Main) {
+////                Glide.get(this@ProfileActivity).clearMemory()
+//                println("clear memory")
+//            }
+//        } catch (e: Exception) {
+//            // onCancelledメソッドと同等の処理
+//            Log.e(localClassName, "ここにキャンセル時の処理を記述", e)
+//        }
+//    }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
     }
+
+//    companion object {
+//        fun newIntent(context: Context, userName: String?, email : String?, imageUrl : String?) : Intent {
+//            val intent = Intent(context, ProfileActivity::class.java)
+//            intent.putExtra(PARAM_USER_NAME, userName)
+//            intent.putExtra(PARAM_USER_EMAIL, email)
+//            intent.putExtra( PARAM_USER_IMAGE_URL, imageUrl)
+//            return intent
+//        }
+//    }
 
 }

@@ -5,14 +5,19 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.fragment.app.FragmentTransaction
+import com.bumptech.glide.Glide
 import com.example.sample_splash_coroutines.R
 import com.example.sample_splash_coroutines.databinding.ActivityHomeBinding
 import com.example.sample_splash_coroutines.fragments.HomeFragment
 import com.example.sample_splash_coroutines.fragments.MyActivityFragment
 import com.example.sample_splash_coroutines.fragments.SearchFragment
+import com.example.sample_splash_coroutines.util.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class HomeActivity : AppCompatActivity() {
@@ -23,18 +28,37 @@ class HomeActivity : AppCompatActivity() {
     private val homeFragment = HomeFragment()
     private val searchFragment = SearchFragment()
     private val myActivityFragment = MyActivityFragment()
-    private lateinit var dialog : AlertDialog
+    private lateinit var db : FirebaseFirestore
+    private lateinit var imageUrl : String
+    private lateinit var username: String
+    private lateinit var email : String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         auth = Firebase.auth
+        db = Firebase.firestore
 
+        populateInfo()
         updateBottomNavigationView()
 
         binding.topMenu.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
+            val intent = Intent(this, ProfileActivity::class.java)
+            intent.putExtra( PARAM_USER_NAME, username)
+            intent.putExtra( PARAM_USER_EMAIL, email)
+            intent.putExtra( PARAM_USER_IMAGE_URL, imageUrl)
+            startActivity(intent)
         }
+
+        binding.floatingActionButton.setOnClickListener {
+            val intent = Intent(this, TweetActivity::class.java)
+            intent.putExtra(PARAM_USER_NAME, username)
+            intent.putExtra(PARAM_USER_ID, auth.currentUser!!.uid)
+            intent.putExtra(PARAM_USER_IMAGE_URL, imageUrl)
+            startActivity(intent)
+        }
+
         setContentView(binding.root)
     }
 
@@ -82,6 +106,27 @@ class HomeActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+    private fun populateInfo(){
+        db.collection(DATA_USERS).document("${auth.currentUser!!.uid}").get()
+            .addOnSuccessListener{ documentSnapShop ->
+                val user : User? = documentSnapShop.toObject(User::class.java)
+                user?.let {
+                    username = it.username!!
+                    email = it.email!!
+                    it.imageUrl?.let { userImageUrl ->
+                        imageUrl = userImageUrl
+                    }
+                    println("username : ${username}")
+                    println("email : ${email}")
+                }
+            }
+            .addOnFailureListener {  e ->
+                e.printStackTrace()
+                finish()
+            }
+
     }
 
 //    private fun loadingAnimation(){
