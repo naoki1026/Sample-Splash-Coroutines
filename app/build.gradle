@@ -70,4 +70,15 @@ dependencies {
 
     // CircleImageView
     implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    // SwiperRefreshLayout
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    // RoundImageView
+    implementation 'com.makeramen:roundedimageview:2.3.0'
+
+    // FlexBox
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+
+
 }

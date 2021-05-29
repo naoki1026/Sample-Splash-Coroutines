@@ -78,9 +78,7 @@ class TweetActivity : AppCompatActivity() {
     private fun storeImage(imageUri : Uri?){
         imageUri?.let { imageUri ->
             tweetImage = imageUri
-            Glide.with(this)
-                .load(imageUri)
-                .into(binding.uploadImage)
+            binding.uploadImage.loadUrl(tweetImage.toString())
         }
     }
 
@@ -88,9 +86,7 @@ class TweetActivity : AppCompatActivity() {
         if (!profileImageUrl.isNullOrBlank()){
             binding.profileImage.visibility = View.INVISIBLE
             binding.tweetCircleImageView.visibility = View.VISIBLE
-            Glide.with(this)
-                .load(profileImageUrl)
-                .into(binding.tweetCircleImageView)
+            binding.tweetCircleImageView.loadUrl(profileImageUrl)
         } else {
         }
     }
@@ -117,7 +113,7 @@ class TweetActivity : AppCompatActivity() {
         val text = binding.tweetText.text.toString()
         val hashtags = getHashtags(text)
         val tweetId : DocumentReference = db.collection(DATA_TWEETS).document()
-        val tweet = Tweet(tweetId.id, arrayListOf(uid!!), username, text, "", System.currentTimeMillis(), hashtags, arrayListOf())
+        val tweet = Tweet(tweetId.id, uid, arrayListOf(uid!!), username, text, profileImageUrl, "", System.currentTimeMillis(), hashtags, arrayListOf())
 
         loadingAnimation()
         binding.tweetButton.isEnabled = false
@@ -137,11 +133,13 @@ class TweetActivity : AppCompatActivity() {
                         filePath.downloadUrl
                             .addOnCompleteListener { uri ->
                             tweetId.update(DATA_USER_IMAGE_URL, uri.result.toString())
+                                binding.uploadImage.visibility = View.INVISIBLE
                                 binding.tweetButton.isEnabled = false
                                 dialog.dismiss()
                                 finish()
                             }
                             .addOnFailureListener {
+                                binding.uploadImage.visibility = View.INVISIBLE
                                 binding.tweetButton.isEnabled = true
                                 dialog.dismiss()
                             }
@@ -236,17 +234,21 @@ class TweetActivity : AppCompatActivity() {
                         countText.setTextColor(Color.RED)
                         binding.tweetButton.isEnabled = false
                     }
-
                 }
             }
-
         })
     }
+
     private fun loadingAnimation(){
         var builder = android.app.AlertDialog.Builder(this@TweetActivity)
         builder.setView(R.layout.loading)
         builder.setCancelable(false)
         dialog = builder.create()
         dialog.show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }

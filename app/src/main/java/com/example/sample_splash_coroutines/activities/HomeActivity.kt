@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import android.widget.SearchView
+import android.widget.Toast
 import androidx.fragment.app.FragmentTransaction
 import com.bumptech.glide.Glide
 import com.example.sample_splash_coroutines.R
@@ -13,6 +15,8 @@ import com.example.sample_splash_coroutines.databinding.ActivityHomeBinding
 import com.example.sample_splash_coroutines.fragments.HomeFragment
 import com.example.sample_splash_coroutines.fragments.MyActivityFragment
 import com.example.sample_splash_coroutines.fragments.SearchFragment
+import com.example.sample_splash_coroutines.fragments.TwitterFragment
+import com.example.sample_splash_coroutines.listener.HomeCallback
 import com.example.sample_splash_coroutines.util.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -20,25 +24,26 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), HomeCallback {
 
     private var _binding : ActivityHomeBinding? = null
     private val binding get() = _binding!!
-    private lateinit var auth  : FirebaseAuth
+    private val auth  = Firebase.auth
+    private val uid = auth.uid
+    private var db = Firebase.firestore
+    private var user : User? = null
     private val homeFragment = HomeFragment()
     private val searchFragment = SearchFragment()
     private val myActivityFragment = MyActivityFragment()
-    private lateinit var db : FirebaseFirestore
-    private lateinit var imageUrl : String
+    private var currentFragment : TwitterFragment = homeFragment
     private lateinit var username: String
     private lateinit var email : String
+    private lateinit var imageUrl : String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
-        auth = Firebase.auth
-        db = Firebase.firestore
 
         populateInfo()
         updateBottomNavigationView()
@@ -59,6 +64,19 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if(!query.isNullOrEmpty()){
+                    searchFragment.newHashtag(query!!)
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
+
         setContentView(binding.root)
     }
 
@@ -67,7 +85,44 @@ class HomeActivity : AppCompatActivity() {
         if(auth.currentUser == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
+        } else {
+            populateInfo()
         }
+    }
+
+    override fun onUserUpdated() {
+        super.onUserUpdated()
+        populateInfo()
+    }
+
+    override fun onRefresh() {
+        currentFragment.updateList()
+    }
+
+    private fun populateInfo(){
+        db.collection(DATA_USERS).document(uid!!).get()
+            .addOnSuccessListener{ documentSnapShop ->
+                user = documentSnapShop.toObject(User::class.java)
+                user?.let {
+                    username = it.username!!
+                    email = it.email!!
+                    it.imageUrl?.let { userImageUrl ->
+                        imageUrl = userImageUrl
+                    }
+                }
+                updateFragmentUser()
+            }
+            .addOnFailureListener {  e ->
+                e.printStackTrace()
+                finish()
+            }
+    }
+
+    private fun updateFragmentUser() {
+        homeFragment.setUser(user)
+        searchFragment.setUser(user)
+        myActivityFragment.setUser(user)
+        currentFragment.updateList()
     }
 
     private fun updateBottomNavigationView(){
@@ -78,6 +133,7 @@ class HomeActivity : AppCompatActivity() {
         binding.bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when(item.itemId){
                 R.id.item_home -> {
+                    currentFragment = homeFragment
                     binding.searchView.visibility = View.INVISIBLE
                     binding.twitterIcon.visibility = View.VISIBLE
                     supportFragmentManager.beginTransaction()
@@ -85,6 +141,7 @@ class HomeActivity : AppCompatActivity() {
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit()
                 }
                 R.id.item_search -> {
+                    currentFragment = searchFragment
                     binding.searchView.visibility = View.VISIBLE
                     binding.twitterIcon.visibility = View.INVISIBLE
                     supportFragmentManager.beginTransaction()
@@ -92,6 +149,7 @@ class HomeActivity : AppCompatActivity() {
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit()
                 }
                 R.id.item_light -> {
+                    currentFragment = myActivityFragment
                     binding.searchView.visibility = View.INVISIBLE
                     binding.twitterIcon.visibility = View.VISIBLE
                     supportFragmentManager.beginTransaction()
@@ -107,35 +165,4 @@ class HomeActivity : AppCompatActivity() {
         super.onDestroy()
         _binding = null
     }
-
-    private fun populateInfo(){
-        db.collection(DATA_USERS).document("${auth.currentUser!!.uid}").get()
-            .addOnSuccessListener{ documentSnapShop ->
-                val user : User? = documentSnapShop.toObject(User::class.java)
-                user?.let {
-                    username = it.username!!
-                    email = it.email!!
-                    it.imageUrl?.let { userImageUrl ->
-                        imageUrl = userImageUrl
-                    }
-                    println("username : ${username}")
-                    println("email : ${email}")
-                }
-            }
-            .addOnFailureListener {  e ->
-                e.printStackTrace()
-                finish()
-            }
-
-    }
-
-//    private fun loadingAnimation(){
-//        var builder = android.app.AlertDialog.Builder(this)
-//        builder.setView(R.layout.loading)
-//        builder.setCancelable(false)
-//
-//        // 定義した変数に対して代入する
-//        dialog = builder.create()
-//        dialog.show()
-//    }
 }

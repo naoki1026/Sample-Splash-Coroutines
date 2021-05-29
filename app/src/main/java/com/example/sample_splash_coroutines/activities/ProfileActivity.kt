@@ -3,6 +3,7 @@ package com.example.sample_splash_coroutines.activities
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -43,7 +44,7 @@ class ProfileActivity : AppCompatActivity() {
 
         username = intent.getStringExtra(PARAM_USER_NAME)!!
         email = intent.getStringExtra(PARAM_USER_EMAIL)!!
-        intent.getStringExtra(PARAM_USER_IMAGE_URL)?.let {getImageUrl ->
+        intent.getStringExtra(PARAM_USER_IMAGE_URL)?.let { getImageUrl ->
             imageUrl = getImageUrl
         }
 
@@ -71,9 +72,7 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        CoroutineScope(Dispatchers.Main).launch {
             populateInfo()
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -104,13 +103,9 @@ class ProfileActivity : AppCompatActivity() {
                 binding.emailET.setText(email)
 
                 if (imageUrl.isNullOrBlank()){
-                    Glide.with(this)
-                        .load(user!!.imageUrl)
-                        .into(findViewById<ImageView>(R.id.circleImageView))
+                    binding.circleImageView.loadUrl(imageUrl)
                 } else if (!user?.imageUrl.isNullOrEmpty()){
-                    Glide.with(this)
-                        .load(user!!.imageUrl)
-                        .into(findViewById<ImageView>(R.id.circleImageView))
+                    binding.circleImageView.loadUrl(user!!.imageUrl)
                 }
             }
             .addOnFailureListener {  e ->
@@ -130,9 +125,7 @@ class ProfileActivity : AppCompatActivity() {
                                 db.collection(DATA_USERS).document(auth.currentUser!!.uid).update(
                                     DATA_USER_IMAGE_URL, url)
                                 imageUrl = url
-                                Glide.with(this@ProfileActivity)
-                                    .load(imageUrl)
-                                    .into(binding.circleImageView)
+                                binding.circleImageView.loadUrl(imageUrl)
                                 Toast.makeText(this@ProfileActivity, "画像を変更しました", Toast.LENGTH_SHORT).show()
                             }
                         dialog.dismiss()
