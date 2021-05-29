@@ -20,7 +20,7 @@ abstract class TwitterFragment : Fragment() {
     protected var tweetsAdapter: TweetListAdapter? = null
     protected var currentUser: User? = null
     protected val db: FirebaseFirestore = Firebase.firestore
-    protected val userId = Firebase.auth.currentUser!!.uid
+    protected val auth = Firebase.auth
     protected var listener: TwitterListenerImp? = null
     protected var callback : HomeCallback? = null
 
@@ -43,7 +43,6 @@ abstract class TwitterFragment : Fragment() {
     // 継承先のクラスにおけるonResume
     override fun onResume() {
         super.onResume()
-        println("onResume")
         updateList()
     }
 }

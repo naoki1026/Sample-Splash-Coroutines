@@ -36,7 +36,7 @@ class MyActivityFragment : TwitterFragment() {
         tweetList = binding.tweetList
         listener = TwitterListenerImp(binding.tweetList, currentUser, callback)
 
-        tweetsAdapter = TweetListAdapter(userId!!, arrayListOf())
+        tweetsAdapter = TweetListAdapter(auth.uid!!, arrayListOf())
         tweetsAdapter?.setListener(listener)
         binding.tweetList.apply {
             layoutManager = LinearLayoutManager(context)
@@ -61,7 +61,7 @@ class MyActivityFragment : TwitterFragment() {
         tweetList.visibility = View.VISIBLE
         currentUser?.let {
             val tweets : ArrayList<Tweet> = arrayListOf()
-            db.collection(DATA_TWEETS).whereArrayContains(DATA_TWEET_USER_IDS, userId).get()
+            db.collection(DATA_TWEETS).whereArrayContains(DATA_TWEET_USER_IDS, auth.uid!!).get()
                 .addOnSuccessListener { list ->
                     for(document in list.documents){
                         val tweet = document.toObject(Tweet::class.java)

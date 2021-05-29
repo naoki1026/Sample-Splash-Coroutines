@@ -35,13 +35,13 @@ class SearchFragment : TwitterFragment() {
         listener = TwitterListenerImp(binding.tweetList, currentUser, callback)
 
 
-        db.collection(DATA_USERS).document(userId).get()
+        db.collection(DATA_USERS).document(auth.uid!!).get()
             .addOnSuccessListener { documentSnapShop ->
                 currentUser = documentSnapShop.toObject(User::class.java)!!
                 hashtagFolllow = (!currentUser!!.followHashtags.isNullOrEmpty())
             }
 
-        tweetsAdapter = TweetListAdapter(userId!!, arrayListOf())
+        tweetsAdapter = TweetListAdapter(auth.uid!!, arrayListOf())
         tweetsAdapter?.setListener(listener)
         binding.tweetList.apply {
             layoutManager = LinearLayoutManager(context)
@@ -64,7 +64,7 @@ class SearchFragment : TwitterFragment() {
             } else {
                 followed?.add(currentHashtag)
             }
-            db.collection(DATA_USERS).document(userId).update(DATA_USER_HASHTAGS, followed)
+            db.collection(DATA_USERS).document(auth.uid!!).update(DATA_USER_HASHTAGS, followed)
                 .addOnCompleteListener {
                     callback?.onUserUpdated()
                     binding.floatingSaveButton.isClickable = true

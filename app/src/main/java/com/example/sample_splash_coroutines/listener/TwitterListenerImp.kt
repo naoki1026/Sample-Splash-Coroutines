@@ -15,19 +15,20 @@ class TwitterListenerImp(val tweetList: RecyclerView, var user: User?, val callb
     private var db = Firebase.firestore
 
     override fun onLayoutClick(tweet: Tweet?) {
-        println("click")
         tweet?.let {
             val owner = tweet.userIds?.get(0)
             println("owner : ${owner}")
-            println("userId ${userId}")
+            println("usreId : ${userId}")
             if(owner != userId) {
                 if (user?.followUsers?.contains(owner) == true) {
                     AlertDialog.Builder(tweetList.context)
                         .setTitle("${tweet.username}のフォローを解除しますか？")
                         .setPositiveButton("はい") { dialog, which ->
                             tweetList.isClickable = false
-
-                            val followedUsers = if (user?.followUsers.isNullOrEmpty()) arrayListOf() else  user?.followUsers
+                            var followedUsers = user?.followUsers
+                            if (followedUsers == null){
+                                followedUsers = arrayListOf()
+                            }
                             followedUsers?.remove(owner)
 
                             db.collection(DATA_USERS).document(userId!!)
@@ -46,7 +47,10 @@ class TwitterListenerImp(val tweetList: RecyclerView, var user: User?, val callb
                         .setPositiveButton("はい") { dialog, which ->
                             tweetList.isClickable = false
 
-                            val followedUsers = if (user?.followUsers.isNullOrEmpty()) arrayListOf() else  user?.followUsers
+                            var followedUsers = user?.followUsers
+                            if (followedUsers == null){
+                                followedUsers = arrayListOf()
+                            }
                             followedUsers?.add(owner)
 
                             db.collection(DATA_USERS).document(userId!!)

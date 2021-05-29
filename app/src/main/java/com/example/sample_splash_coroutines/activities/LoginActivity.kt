@@ -26,7 +26,15 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        auth = Firebase.auth
+        if (auth.currentUser != null ){
+            val intent = Intent(this@LoginActivity, HomeActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(intent)
+        }
         _binding = ActivityLoginBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+
         var emailET = binding.emailET
         var passwordET = binding.passwordET
 
@@ -49,8 +57,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val view = binding.root
-        setContentView(view)
     }
 
     override fun onDestroy() {

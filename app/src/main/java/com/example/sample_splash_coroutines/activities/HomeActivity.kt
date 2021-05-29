@@ -100,22 +100,25 @@ class HomeActivity : AppCompatActivity(), HomeCallback {
     }
 
     private fun populateInfo(){
-        db.collection(DATA_USERS).document(uid!!).get()
-            .addOnSuccessListener{ documentSnapShop ->
-                user = documentSnapShop.toObject(User::class.java)
-                user?.let {
-                    username = it.username!!
-                    email = it.email!!
-                    it.imageUrl?.let { userImageUrl ->
-                        imageUrl = userImageUrl
+        if(auth.currentUser != null) {
+            db.collection(DATA_USERS).document(uid!!).get()
+                .addOnSuccessListener{ documentSnapShop ->
+                    user = documentSnapShop.toObject(User::class.java)
+                    user?.let {
+                        username = it.username!!
+                        email = it.email!!
+                        it.imageUrl?.let { userImageUrl ->
+                            imageUrl = userImageUrl
+                        }
                     }
+                    updateFragmentUser()
                 }
-                updateFragmentUser()
-            }
-            .addOnFailureListener {  e ->
-                e.printStackTrace()
-                finish()
-            }
+                .addOnFailureListener {  e ->
+                    e.printStackTrace()
+                    finish()
+                }
+        }
+
     }
 
     private fun updateFragmentUser() {

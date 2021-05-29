@@ -34,15 +34,17 @@ class HomeFragment : TwitterFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        tweetList = binding.tweetList
-        listener = TwitterListenerImp(binding.tweetList, currentUser, callback)
+        if(auth.currentUser != null){
+            tweetList = binding.tweetList
+            listener = TwitterListenerImp(binding.tweetList, currentUser, callback)
 
-        tweetsAdapter = TweetListAdapter(userId!!, arrayListOf())
-        tweetsAdapter?.setListener(listener)
-        binding.tweetList.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = tweetsAdapter
-            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+            tweetsAdapter = TweetListAdapter(auth.uid!!, arrayListOf())
+            tweetsAdapter?.setListener(listener)
+            binding.tweetList.apply {
+                layoutManager = LinearLayoutManager(context)
+                adapter = tweetsAdapter
+                addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+            }
         }
 
         // 下にスワイプした場合の処理
@@ -83,22 +85,24 @@ class HomeFragment : TwitterFragment() {
             }
 
 
-            for( followusers in it.followUsers!!) {
-                db.collection(DATA_TWEETS).whereArrayContains(DATA_TWEET_USER_IDS, followusers).get()
-                    .addOnSuccessListener { list ->
-                        for(document in list.documents){
-                            val tweet = document.toObject(Tweet::class.java)
-                            tweet?.let {
-                                tweets.add(it)
+            if (!it.followUsers.isNullOrEmpty()){
+                for( followusers in it.followUsers!!) {
+                    db.collection(DATA_TWEETS).whereArrayContains(DATA_TWEET_USER_IDS, followusers).get()
+                        .addOnSuccessListener { list ->
+                            for(document in list.documents){
+                                val tweet = document.toObject(Tweet::class.java)
+                                tweet?.let {
+                                    tweets.add(it)
+                                }
+                                updateAdapter(tweets)
+                                tweetList?.visibility = View.VISIBLE
                             }
-                            updateAdapter(tweets)
+
+                        }.addOnFailureListener { e ->
+                            e.printStackTrace()
                             tweetList?.visibility = View.VISIBLE
                         }
-
-                    }.addOnFailureListener { e ->
-                        e.printStackTrace()
-                        tweetList?.visibility = View.VISIBLE
-                    }
+                }
             }
         }
 //        tweetList.visibility = View.VISIBLE
